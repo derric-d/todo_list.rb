@@ -43,9 +43,11 @@ class List
 	def delete(task_number)
 		all_tasks.delete_at(task_number - 1)
 	end
+
 	def update(task_number, task)
-		all_tasks(task_number - 1) == task
-	end
+		all_tasks[task_number - 1] = task
+	end	
+
 	def show
 		all_tasks.map.with_index { |l, i| "(#{i.next}): #{l}"}
 	end

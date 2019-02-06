@@ -56,13 +56,13 @@ class List
 	
 	def write_to_file(filename)
 		machinified = @all_tasks.map(&:to_machine).join("\n")
-		IO.write(filename, @all_tasks.map(&:to_s).join("\n"))
+		IO.write(filename, machinified)
 	end
 	def read_from_file(filename)
 		IO.readlines(filename).each do |line|
 			status, *description = line.split(':')
-			status = status.include?('X')
-			add(Task.new(line.chomp))
+			status = status.include?('x')
+			add(Task.new(description.join(':').strip, status))
 		end
 	end
 	def toggle(task_number)
@@ -72,34 +72,32 @@ end
 
 class Task
 	attr_reader :description
-	attr_accessor :status
-	def initialize(description, status = false)
+	attr_accessor :completed_status
+	def initialize(description, completed_status = false)
 		@description = description
-		@status = status
+		@completed_status = completed_status
 	end
 
 	def to_s
-		description
+		"#{represent_status} : #{description}"
 	end
 
 	def completed?
-		status
+		completed_status
 	end
 
 	def toggle_status
 		@completed_status = !completed?
 	end
 	def to_machine
-		"#{represent_status} : #{description}"
+		"#{represent_status}:#{description}"
 	end
 
 	private
 
 	def represent_status
-		"#{completed? ? '[x]' : '[ ]'}"
-	end
-
-	
+		completed? ? '[X]' : '[ ]'
+	end	
 end
 
 if __FILE__ == $PROGRAM_NAME 
@@ -126,7 +124,12 @@ if __FILE__ == $PROGRAM_NAME
     			when '5'
     				my_list.write_to_file(prompt('What is the filename you want to write to? '))
     			when '6'
-    				my_list.read_from_file(prompt('What file do you want to read from? '))
+    				begin
+    					my_list.read_from_file(prompt('What file do you want to read from? '))
+    				rescue Errno::ENOENT
+			            puts 'File name not found, please verify your file name 
+			            and path.'
+			        end
     			when '7'
 		            puts my_list.show
 		            my_list.toggle(prompt('Which would you like to toggle the status for?').to_i)
